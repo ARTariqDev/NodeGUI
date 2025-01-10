@@ -72,11 +72,13 @@ function App() {
       });
 
       if (parentId) {
+        const edgeColor = parentId === 'root' ? 'blue' : 'green'; // Color for root-parent or normal parent-child
         edges.push({
           id: `${parentId}-${id}`,
           source: parentId,
           target: id,
           markerEnd: { type: MarkerType.ArrowClosed },
+          style: { stroke: edgeColor, strokeWidth: 2 }, // Apply edge color
         });
       }
     };
@@ -90,6 +92,7 @@ function App() {
           const nodeId = `${parentId}-${child.label}`;
           addNode(nodeId, child.label, 'file', parentId);
 
+          // Check for sibling edges and color them differently
           if (index > 0) {
             const siblingId = `${parentId}-${node.children[index - 1].label}`;
             edges.push({
@@ -97,6 +100,7 @@ function App() {
               source: siblingId,
               target: nodeId,
               markerEnd: { type: MarkerType.ArrowClosed },
+              style: { stroke: 'red', strokeWidth: 2 }, // Color for sibling edge
             });
           }
 
