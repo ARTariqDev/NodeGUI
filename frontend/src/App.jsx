@@ -161,6 +161,15 @@ function App() {
         </button>
       </div>
 
+      {/* Explanation Card for Edges */}
+      <div className="card">
+        <h3>Edge Types Explanation</h3>
+        <ul>
+          <li><strong>Parent-Child Edge:</strong> This edge represents a hierarchical relationship where one node is a parent of another. Represented with <strong style ={{color: "#0b750b"}}>green</strong></li>
+          <li><strong>Sibling Edge:</strong> This edge connects nodes that are on the same level of hierarchy (i.e., sibling nodes).Represented with <strong style ={{color: "#f00000"}}>red</strong></li>
+        </ul>
+      </div>
+
       <div style={{ height: '600px', width: '100%' }}>
         <ReactFlow
           nodes={nodes}
