@@ -1,35 +1,30 @@
 import React, { useState } from 'react';
-import ReactFlow, { Background, Controls, MarkerType } from 'reactflow';
+import ReactFlow, { Background, Controls, MiniMap, MarkerType } from 'reactflow';
 import 'reactflow/dist/style.css';
 import './index.css';
 import dagre from 'dagre';
 
-// Set up the graph layout using Dagre
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
 const getLayoutedElements = (nodes, edges, rankdir) => {
   dagreGraph.setGraph({
-    rankdir: rankdir,  // Dynamic layout direction
-    nodesep: 50,       // Distance between nodes
-    edgesep: 10,       // Distance between edges
-    ranksep: 100,      // Distance between horizontal ranks (sibling nodes)
+    rankdir: rankdir,
+    nodesep: 50,
+    edgesep: 10,
+    ranksep: 100,
   });
 
-  // Add nodes
   nodes.forEach((node) => {
     dagreGraph.setNode(node.id, { width: 180, height: 80 });
   });
 
-  // Add edges
   edges.forEach((edge) => {
     dagreGraph.setEdge(edge.source, edge.target);
   });
 
-  // Apply the layout
   dagre.layout(dagreGraph);
 
-  // Set node positions based on layout
   nodes.forEach((node) => {
     const nodeWithPosition = dagreGraph.node(node.id);
     node.position = { x: nodeWithPosition.x, y: nodeWithPosition.y };
@@ -42,7 +37,12 @@ function App() {
   const [projectPath, setProjectPath] = useState('');
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
-  const [layout, setLayout] = useState('TB');  // Default layout (Top to Bottom)
+  const [layout, setLayout] = useState('TB');
+  const [newNodeDetails, setNewNodeDetails] = useState({
+    nodeName: '',
+    extension: '',
+    parentNode: '',
+  });
 
   const getDirectoryTree = async () => {
     const response = await fetch('http://localhost:5001/get-directory-tree', {
@@ -72,13 +72,13 @@ function App() {
       });
 
       if (parentId) {
-        const edgeColor = parentId === 'root' ? 'blue' : 'green'; // Color for root-parent or normal parent-child
+        const edgeColor = parentId === 'root' ? 'blue' : 'green';
         edges.push({
           id: `${parentId}-${id}`,
           source: parentId,
           target: id,
           markerEnd: { type: MarkerType.ArrowClosed },
-          style: { stroke: edgeColor, strokeWidth: 2 }, // Apply edge color
+          style: { stroke: edgeColor, strokeWidth: 2 },
         });
       }
     };
@@ -88,21 +88,9 @@ function App() {
 
     const processTree = (node, parentId) => {
       if (node.children) {
-        node.children.forEach((child, index) => {
+        node.children.forEach((child) => {
           const nodeId = `${parentId}-${child.label}`;
           addNode(nodeId, child.label, 'file', parentId);
-
-          // Check for sibling edges and color them differently
-          if (index > 0) {
-            const siblingId = `${parentId}-${node.children[index - 1].label}`;
-            edges.push({
-              id: `${siblingId}-${nodeId}`,
-              source: siblingId,
-              target: nodeId,
-              markerEnd: { type: MarkerType.ArrowClosed },
-              style: { stroke: 'red', strokeWidth: 2 }, // Color for sibling edge
-            });
-          }
 
           if (child.children) {
             processTree(child, nodeId);
@@ -116,7 +104,41 @@ function App() {
     return { nodes, edges };
   };
 
-  const changeLayout = (newLayout) => {
+  const handleNodeCreation = async () => {
+    const { nodeName, extension, parentNode } = newNodeDetails;
+
+    // Send a request to the backend to create the file/folder
+    const response = await fetch('http://localhost:5001/create-node', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ nodeName, extension, parentNode }),
+    });
+
+    const result = await response.json();
+
+    if (result.success) {
+      // Add the new node and edge to the graph
+      const newNode = {
+        id: result.newNodeId,  // Assuming the backend returns a new node ID
+        data: { label: nodeName },
+        position: { x: 0, y: 0 },
+        type: 'file',
+      };
+
+      const newEdge = {
+        id: `${parentNode}-${result.newNodeId}`,
+        source: parentNode,
+        target: result.newNodeId,
+        markerEnd: { type: MarkerType.ArrowClosed },
+        style: { stroke: 'blue', strokeWidth: 2 },
+      };
+
+      setNodes((prevNodes) => [...prevNodes, newNode]);
+      setEdges((prevEdges) => [...prevEdges, newEdge]);
+    }
+  };
+
+  const handleLayoutChange = (newLayout) => {
     setLayout(newLayout);
     const layoutedElements = getLayoutedElements(nodes, edges, newLayout);
     setNodes(layoutedElements.nodes);
@@ -135,50 +157,27 @@ function App() {
       <button onClick={getDirectoryTree}>Get Directory Diagram</button>
 
       <div>
-        <button 
-          onClick={() => changeLayout('TB')} 
-          className={layout === 'TB' ? 'active' : ''}
-        >
+        <button onClick={() => handleLayoutChange('TB')} className={layout === 'TB' ? 'active' : ''}>
           Top to Bottom
         </button>
-        <button 
-          onClick={() => changeLayout('BT')} 
-          className={layout === 'BT' ? 'active' : ''}
-        >
+        <button onClick={() => handleLayoutChange('BT')} className={layout === 'BT' ? 'active' : ''}>
           Bottom to Top
         </button>
-        <button 
-          onClick={() => changeLayout('LR')} 
-          className={layout === 'LR' ? 'active' : ''}
-        >
+        <button onClick={() => handleLayoutChange('LR')} className={layout === 'LR' ? 'active' : ''}>
           Left to Right
         </button>
-        <button 
-          onClick={() => changeLayout('RL')} 
-          className={layout === 'RL' ? 'active' : ''}
-        >
+        <button onClick={() => handleLayoutChange('RL')} className={layout === 'RL' ? 'active' : ''}>
           Right to Left
         </button>
       </div>
 
-      {/* Explanation Card for Edges */}
-      <div className="card">
-        <h3>Edge Types Explanation</h3>
-        <ul>
-          <li><strong>Parent-Child Edge:</strong> This edge represents a hierarchical relationship where one node is a parent of another. Represented with <strong style ={{color: "#0b750b"}}>green</strong></li>
-          <li><strong>Sibling Edge:</strong> This edge connects nodes that are on the same level of hierarchy (i.e., sibling nodes).Represented with <strong style ={{color: "#f00000"}}>red</strong></li>
-        </ul>
-      </div>
+      {/* New Node Card */}
 
       <div style={{ height: '600px', width: '100%' }}>
-        <ReactFlow
-          nodes={nodes}
-          edges={edges}
-          fitView
-          draggable
-        >
+        <ReactFlow nodes={nodes} edges={edges} fitView>
           <Background />
           <Controls />
+          <MiniMap />
         </ReactFlow>
       </div>
     </div>

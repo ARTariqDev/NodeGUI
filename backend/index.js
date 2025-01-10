@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
+const { exec } = require('child_process');
 
 const app = express();
 app.use(cors());
@@ -37,12 +38,27 @@ const getDirectoryTree = (dirPath) => {
   }
 
   // Only include relevant file types
-  const validFileExtensions = ['.js', '.jsx', '.css', '.html'];
+  const validFileExtensions = ['.js', '.jsx', '.css', '.html','.svg','.jpg','.png'];
   if (validFileExtensions.includes(path.extname(name))) {
     return { label: name };
   }
 
   return null;
+};
+
+// Function to create a new file or folder
+const createFileOrFolder = (parentPath, name, type) => {
+  const fullPath = path.join(parentPath, name);
+
+  if (type === 'file') {
+    // Create a file with the provided name
+    fs.writeFileSync(fullPath, '', { flag: 'w' });
+  } else if (type === 'folder') {
+    // Create a folder with the provided name
+    fs.mkdirSync(fullPath);
+  } else {
+    throw new Error('Invalid type. Must be "file" or "folder".');
+  }
 };
 
 app.post('/get-directory-tree', (req, res) => {
@@ -53,6 +69,17 @@ app.post('/get-directory-tree', (req, res) => {
     res.json(tree);
   } catch (err) {
     res.status(500).json({ error: 'Invalid project path or directory not found.' });
+  }
+});
+
+app.post('/create-node', (req, res) => {
+  const { parentPath, name, type } = req.body;
+
+  try {
+    createFileOrFolder(parentPath, name, type);
+    res.json({ success: true, message: `${type} created successfully!` });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

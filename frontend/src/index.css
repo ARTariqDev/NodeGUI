@@ -80,3 +80,19 @@ body {
     font-weight: bold;
   }
   
+  .info-card {
+    margin-top: 20px;
+    padding: 15px;
+    background-color: #f4f4f4;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+  }
+  
+  .info-card h2 {
+    margin-bottom: 10px;
+  }
+  
+  .info-card p {
+    margin: 5px 0;
+  }
+  
