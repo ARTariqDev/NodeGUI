@@ -30,3 +30,21 @@ body {
     padding: 20px;
   }
   
+
+
+  button.active {
+    background-color: #4CAF50; /* Green */
+    color: white;
+    font-weight: bold;
+  }
+  button {
+    margin: 5px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    background-color: rgb(58, 81, 198);
+    cursor: pointer;
+  }
+  button:hover {
+    color: #ffaa00;
+  }
+  

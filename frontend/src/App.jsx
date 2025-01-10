@@ -8,12 +8,12 @@ import dagre from 'dagre';
 const dagreGraph = new dagre.graphlib.Graph();
 dagreGraph.setDefaultEdgeLabel(() => ({}));
 
-const getLayoutedElements = (nodes, edges) => {
+const getLayoutedElements = (nodes, edges, rankdir) => {
   dagreGraph.setGraph({
-    rankdir: 'TB',  // Left-to-right layout for horizontal alignment
-    nodesep: 50,    // Distance between nodes
-    edgesep: 10,    // Distance between edges
-    ranksep: 100,   // Distance between horizontal ranks (sibling nodes)
+    rankdir: rankdir,  // Dynamic layout direction
+    nodesep: 50,       // Distance between nodes
+    edgesep: 10,       // Distance between edges
+    ranksep: 100,      // Distance between horizontal ranks (sibling nodes)
   });
 
   // Add nodes
@@ -42,6 +42,7 @@ function App() {
   const [projectPath, setProjectPath] = useState('');
   const [nodes, setNodes] = useState([]);
   const [edges, setEdges] = useState([]);
+  const [layout, setLayout] = useState('TB');  // Default layout (Top to Bottom)
 
   const getDirectoryTree = async () => {
     const response = await fetch('http://localhost:5001/get-directory-tree', {
@@ -53,7 +54,7 @@ function App() {
     const result = await response.json();
     const { nodes, edges } = convertToFlowFormat(result);
 
-    const layoutedElements = getLayoutedElements(nodes, edges);
+    const layoutedElements = getLayoutedElements(nodes, edges, layout);
     setNodes(layoutedElements.nodes);
     setEdges(layoutedElements.edges);
   };
@@ -111,6 +112,13 @@ function App() {
     return { nodes, edges };
   };
 
+  const changeLayout = (newLayout) => {
+    setLayout(newLayout);
+    const layoutedElements = getLayoutedElements(nodes, edges, newLayout);
+    setNodes(layoutedElements.nodes);
+    setEdges(layoutedElements.edges);
+  };
+
   return (
     <div className="App">
       <h1>Node.js Project Manager</h1>
@@ -122,11 +130,39 @@ function App() {
       />
       <button onClick={getDirectoryTree}>Get Directory Diagram</button>
 
+      <div>
+        <button 
+          onClick={() => changeLayout('TB')} 
+          className={layout === 'TB' ? 'active' : ''}
+        >
+          Top to Bottom
+        </button>
+        <button 
+          onClick={() => changeLayout('BT')} 
+          className={layout === 'BT' ? 'active' : ''}
+        >
+          Bottom to Top
+        </button>
+        <button 
+          onClick={() => changeLayout('LR')} 
+          className={layout === 'LR' ? 'active' : ''}
+        >
+          Left to Right
+        </button>
+        <button 
+          onClick={() => changeLayout('RL')} 
+          className={layout === 'RL' ? 'active' : ''}
+        >
+          Right to Left
+        </button>
+      </div>
+
       <div style={{ height: '600px', width: '100%' }}>
         <ReactFlow
           nodes={nodes}
           edges={edges}
           fitView
+          draggable
         >
           <Background />
           <Controls />
