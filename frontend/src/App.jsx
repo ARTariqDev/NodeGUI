@@ -45,7 +45,7 @@ function App() {
   });
 
   const getDirectoryTree = async () => {
-    const response = await fetch('http://localhost:5001/get-directory-tree', {
+    const response = await fetch('/api/get-directory-tree', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ projectPath }),
@@ -108,7 +108,7 @@ function App() {
     const { nodeName, extension, parentNode } = newNodeDetails;
 
     // Send a request to the backend to create the file/folder
-    const response = await fetch('http://localhost:5001/create-node', {
+    const response = await fetch('/api/create-node', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nodeName, extension, parentNode }),

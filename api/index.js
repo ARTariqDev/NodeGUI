@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const { exec } = require('child_process');
+const serverless = require('serverless-http'); // Import serverless-http
 
 const app = express();
 app.use(cors());
@@ -38,7 +38,7 @@ const getDirectoryTree = (dirPath) => {
   }
 
   // Only include relevant file types
-  const validFileExtensions = ['.js', '.jsx', '.css', '.html','.svg','.jpg','.png'];
+  const validFileExtensions = ['.js', '.jsx', '.css', '.html', '.svg', '.jpg', '.png'];
   if (validFileExtensions.includes(path.extname(name))) {
     return { label: name };
   }
@@ -61,7 +61,8 @@ const createFileOrFolder = (parentPath, name, type) => {
   }
 };
 
-app.post('/get-directory-tree', (req, res) => {
+// Endpoint to get the directory tree
+app.post('/api/get-directory-tree', (req, res) => {
   const { projectPath } = req.body;
 
   try {
@@ -72,7 +73,8 @@ app.post('/get-directory-tree', (req, res) => {
   }
 });
 
-app.post('/create-node', (req, res) => {
+// Endpoint to create a new node (file or folder)
+app.post('/api/create-node', (req, res) => {
   const { parentPath, name, type } = req.body;
 
   try {
@@ -83,6 +85,5 @@ app.post('/create-node', (req, res) => {
   }
 });
 
-app.listen(5001, () => {
-  console.log('Server is running on http://localhost:5001');
-});
+// Export the app as a serverless function
+module.exports.handler = serverless(app);
