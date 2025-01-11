@@ -45,7 +45,11 @@ function App() {
   });
 
   const getDirectoryTree = async () => {
+<<<<<<< HEAD
     const response = await fetch('/api/get-directory-tree', {
+=======
+    const response = await fetch('https://node-gui-zsv6.vercel.app/get-directory-tree', {
+>>>>>>> parent of f6feb8d (Update App.jsx)
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ projectPath }),
@@ -108,7 +112,11 @@ function App() {
     const { nodeName, extension, parentNode } = newNodeDetails;
 
     // Send a request to the backend to create the file/folder
+<<<<<<< HEAD
     const response = await fetch('/api/create-node', {
+=======
+    const response = await fetch('https://node-gui-zsv6.vercel.app/create-node', {
+>>>>>>> parent of f6feb8d (Update App.jsx)
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ nodeName, extension, parentNode }),
