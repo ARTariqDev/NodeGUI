@@ -2,7 +2,6 @@ const express = require('express');
 const cors = require('cors');
 const fs = require('fs');
 const path = require('path');
-const serverless = require('serverless-http'); // Import serverless-http
 
 const app = express();
 app.use(cors());
@@ -13,6 +12,7 @@ const getDirectoryTree = (dirPath) => {
   const stats = fs.lstatSync(dirPath);
   const name = path.basename(dirPath);
 
+  // Filter out unnecessary files and folders
   const ignoredFiles = [
     'node_modules',
     '.git',
@@ -32,10 +32,11 @@ const getDirectoryTree = (dirPath) => {
       children: fs
         .readdirSync(dirPath)
         .map((child) => getDirectoryTree(path.join(dirPath, child)))
-        .filter(Boolean),
+        .filter(Boolean), // Remove null values
     };
   }
 
+  // Only include relevant file types
   const validFileExtensions = ['.js', '.jsx', '.css', '.html', '.svg', '.jpg', '.png'];
   if (validFileExtensions.includes(path.extname(name))) {
     return { label: name };
@@ -49,8 +50,10 @@ const createFileOrFolder = (parentPath, name, type) => {
   const fullPath = path.join(parentPath, name);
 
   if (type === 'file') {
+    // Create a file with the provided name
     fs.writeFileSync(fullPath, '', { flag: 'w' });
   } else if (type === 'folder') {
+    // Create a folder with the provided name
     fs.mkdirSync(fullPath);
   } else {
     throw new Error('Invalid type. Must be "file" or "folder".');
@@ -81,5 +84,9 @@ app.post('/api/create-node', (req, res) => {
   }
 });
 
-// Export the app as a serverless function
-module.exports.handler = serverless(app);
+// 🔴 ADD THIS AT THE END
+const PORT = process.env.PORT || 5001;
+
+app.listen(PORT, () => {
+  console.log(`Server is running on http://localhost:${PORT}`);
+});
